@@ -2,7 +2,7 @@
 from Board import *
 from Solver import *
 
-from Minimax import (
+from MinMax import (
     coups_possibles,
     simuler_coup,
     evaluer_grille,
