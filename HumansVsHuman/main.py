@@ -3,6 +3,7 @@ from Board import *
 from Solver import *
 from MinMax import meilleur_coup as minimax_coup
 from AlphaBeta import meilleur_coup_alphabeta as alphabeta_coup
+
 # Dimensions & Colors
 TAILLE_CASE = 75
 LARGEUR = NB_COLONNES * TAILLE_CASE
@@ -105,11 +106,15 @@ def dessiner():
     update_label()
 
 # ============================================================
-# AI TURN LOGIC
+# AI TURN LOGIC - FIXED
 # ============================================================
 def tour_ia():
     if partie["terminee"] or partie["joueur_actuel"] != JAUNE:
         return
+
+    # Force Tkinter to refresh the label on screen immediately
+    update_label()
+    root.update_idletasks()
 
     mode = mode_jeu.get()
     if mode == 2:
