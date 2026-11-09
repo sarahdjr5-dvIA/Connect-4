@@ -20,7 +20,7 @@ partie = initialiser_partie()
 root = tk.Tk()
 root.title("Puissance 4 - Selection du Mode & IA")
 
-# 1: Humain vs Humain, 2: Humain vs Minimax, 3: Humain vs AlphaBeta
+# Mode: 1 = Humain vs Humain, 2 = Humain vs Minimax, 3 = Humain vs AlphaBeta
 mode_jeu = tk.IntVar(value=1)
 
 # ============================================================
@@ -35,6 +35,9 @@ lbl_mode.pack(side="left", padx=10)
 def reset():
     global partie
     partie = initialiser_partie()
+    # In AI modes (2 and 3), Human (ROUGE) goes first
+    if mode_jeu.get() in [2, 3]:
+        partie["joueur_actuel"] = ROUGE
     dessiner()
 
 def changer_mode():
@@ -106,13 +109,12 @@ def dessiner():
     update_label()
 
 # ============================================================
-# AI TURN LOGIC - FIXED
+# AI TURN LOGIC
 # ============================================================
 def tour_ia():
     if partie["terminee"] or partie["joueur_actuel"] != JAUNE:
         return
 
-    # Force Tkinter to refresh the label on screen immediately
     update_label()
     root.update_idletasks()
 
@@ -134,8 +136,8 @@ def on_click(event):
     if partie["terminee"]:
         return
 
-    # Against AI, only Human (ROUGE) clicks
-    if mode_jeu.get() != 1 and partie["joueur_actuel"] != ROUGE:
+    # In AI modes (2 or 3), human can only click on ROUGE turn
+    if mode_jeu.get() in [2, 3] and partie["joueur_actuel"] != ROUGE:
         return
 
     colonne = event.x // TAILLE_CASE
@@ -146,7 +148,9 @@ def on_click(event):
 
         # Trigger AI move after human turn
         if not partie["terminee"] and mode_jeu.get() in [2, 3] and partie["joueur_actuel"] == JAUNE:
-            root.after(300, tour_ia)
+            label_var.set("Tour : IA (JAUNE reflexion...)")
+            root.update_idletasks()
+            root.after(200, tour_ia)
 
 canvas.bind("<Button-1>", on_click)
 
