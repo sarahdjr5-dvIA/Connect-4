@@ -1,166 +1,72 @@
-
-# ============================================================
-# MINIMAX - PUISSANCE 4
-# ============================================================
-
 from Board import *
 from Solver import *
 
+MAX_DEPTH = 4       # profondeur maximale de recherche
+WIN_SCORE = 100000  # valeur tres grande pour representer une victoire
 
-# ============================================================
-# PARAMETRES
-# ============================================================
-
-# Profondeur maximale de recherche
-MAX_DEPTH = 4
-
-# Valeur tres grande utilisee pour representer une victoire
-WIN_SCORE = 100000
-
-
-# ============================================================
-# COUPS POSSIBLES
-# ============================================================
 
 def coups_possibles(grille):
-    """
-    Retourne la liste des colonnes dans lesquelles
-    un pion peut encore etre place.
-    """
-
-    coups = []
+    coups = []  # liste des colonnes possibles
 
     for colonne in range(NB_COLONNES):
-
         if not colonne_pleine(grille, colonne):
-
             coups.append(colonne)
 
     return coups
 
 
-# ============================================================
-# COPIE DE LA GRILLE
-# ============================================================
-
 def copier_grille(grille):
-    """
-    Cree une copie independante de la grille.
-
-    On en a besoin parce que Minimax doit pouvoir
-    essayer des coups sans modifier la vraie grille.
-    """
-
-    nouvelle_grille = []
+    nouvelle_grille = []  # copie de la grille
 
     for ligne in grille:
-
         nouvelle_grille.append(ligne[:])
 
     return nouvelle_grille
 
 
-# ============================================================
-# SIMULATION D'UN COUP
-# ============================================================
-
 def simuler_coup(grille, colonne, joueur):
-    """
-    Simule le placement d'un pion dans une copie
-    de la grille.
-
-    La grille originale n'est pas modifiee.
-    """
-
-    nouvelle_grille = copier_grille(grille)
-
-    placer_pion(nouvelle_grille, colonne, joueur)
+    nouvelle_grille = copier_grille(grille)  # copie de la grille
+    placer_pion(nouvelle_grille, colonne, joueur)  # placer le pion dans la copie
 
     return nouvelle_grille
 
 
-# ============================================================
-# EVALUATION D'UNE FENETRE DE 4 CASES
-# ============================================================
-
 def evaluer_fenetre(fenetre):
-    """
-    Evalue une fenetre de 4 cases.
+    score = 0  # score de la fenetre
 
-    JAUNE = joueur MAX = ordinateur
-    ROUGE = joueur MIN = humain
-    """
+    # on compte les cases de chaque type
+    nb_jaune = fenetre.count(JAUNE)  # nombre de pions jaunes
+    nb_rouge = fenetre.count(ROUGE)  # nombre de pions rouges
+    nb_vide = fenetre.count(VIDE)    # nombre de cases vides
 
-    score = 0
-
-    # Compter les cases de chaque type
-    nb_jaune = fenetre.count(JAUNE)
-    nb_rouge = fenetre.count(ROUGE)
-    nb_vide = fenetre.count(VIDE)
-
-    # --------------------------------------------------------
-    # Evaluation pour JAUNE
-    # --------------------------------------------------------
-
+    # evaluation pour JAUNE
     if nb_jaune == 4:
-
         score += WIN_SCORE
 
     elif nb_jaune == 3 and nb_vide == 1:
-
         score += 5
 
     elif nb_jaune == 2 and nb_vide == 2:
-
         score += 2
 
-    # --------------------------------------------------------
-    # Evaluation pour ROUGE
-    # --------------------------------------------------------
-
+    # evaluation pour ROUGE
     if nb_rouge == 4:
-
         score -= WIN_SCORE
 
     elif nb_rouge == 3 and nb_vide == 1:
-
         score -= 5
 
     elif nb_rouge == 2 and nb_vide == 2:
-
         score -= 2
 
     return score
 
 
-# ============================================================
-# HEURISTIQUE B
-# ============================================================
-
 def evaluer_grille(grille):
-    """
-    Evalue l'ensemble de la grille.
+    score = 0  # score total de la grille
 
-    L'evaluation est faite en examinant toutes les
-    fenetres possibles de 4 cases :
-
-    - horizontalement
-    - verticalement
-    - diagonalement \
-    - diagonalement /
-
-    Un score positif est favorable a JAUNE.
-    Un score negatif est favorable a ROUGE.
-    """
-
-    score = 0
-
-    # --------------------------------------------------------
-    # HORIZONTAL
-    # --------------------------------------------------------
-
+    # on verifie horizontalement
     for ligne in range(NB_LIGNES):
-
         for colonne in range(NB_COLONNES - 3):
 
             fenetre = [
@@ -172,12 +78,8 @@ def evaluer_grille(grille):
 
             score += evaluer_fenetre(fenetre)
 
-    # --------------------------------------------------------
-    # VERTICAL
-    # --------------------------------------------------------
-
+    # on verifie verticalement
     for ligne in range(NB_LIGNES - 3):
-
         for colonne in range(NB_COLONNES):
 
             fenetre = [
@@ -189,12 +91,8 @@ def evaluer_grille(grille):
 
             score += evaluer_fenetre(fenetre)
 
-    # --------------------------------------------------------
-    # DIAGONALE DESCENDANTE \
-    # --------------------------------------------------------
-
+    # on verifie les diagonales descendantes
     for ligne in range(NB_LIGNES - 3):
-
         for colonne in range(NB_COLONNES - 3):
 
             fenetre = [
@@ -206,12 +104,8 @@ def evaluer_grille(grille):
 
             score += evaluer_fenetre(fenetre)
 
-    # --------------------------------------------------------
-    # DIAGONALE MONTANTE /
-    # --------------------------------------------------------
-
+    # on verifie les diagonales montantes
     for ligne in range(3, NB_LIGNES):
-
         for colonne in range(NB_COLONNES - 3):
 
             fenetre = [
@@ -223,166 +117,83 @@ def evaluer_grille(grille):
 
             score += evaluer_fenetre(fenetre)
 
-    # --------------------------------------------------------
-    # BONUS POUR LA COLONNE CENTRALE
-    # --------------------------------------------------------
-
-    colonne_centrale = NB_COLONNES // 2
+    # on ajoute un bonus pour la colonne centrale
+    colonne_centrale = NB_COLONNES // 2  # indice de la colonne centrale
 
     for ligne in range(NB_LIGNES):
-
         if grille[ligne][colonne_centrale] == JAUNE:
-
             score += 3
 
         elif grille[ligne][colonne_centrale] == ROUGE:
-
             score -= 3
 
     return score
 
 
-# ============================================================
-# MINIMAX
-# ============================================================
-
 def minimax(grille, profondeur, maximisant):
-    """
-    Algorithme Minimax.
+    coups = coups_possibles(grille)  # liste des coups possibles
 
-    Parametres :
-        grille      : etat actuel du plateau
-        profondeur  : profondeur actuelle dans l'arbre
-        maximisant  : True si c'est le tour de JAUNE,
-                      False si c'est le tour de ROUGE
-
-    Retourne :
-        (meilleure_valeur, meilleur_coup)
-    """
-
-    # --------------------------------------------------------
-    # Recuperer les coups possibles
-    # --------------------------------------------------------
-
-    coups = coups_possibles(grille)
-
-    # --------------------------------------------------------
-    # VERIFICATION DES ETATS TERMINAUX
-    # --------------------------------------------------------
-
-    # JAUNE a gagne
+    # on verifie si JAUNE a gagne
     if verifier_victoire(grille, JAUNE):
-
         return WIN_SCORE - profondeur, None
 
-    # ROUGE a gagne
+    # on verifie si ROUGE a gagne
     if verifier_victoire(grille, ROUGE):
-
         return -WIN_SCORE + profondeur, None
 
-    # Match nul
+    # on verifie si la grille est pleine
     if grille_pleine(grille):
-
         return 0, None
 
-    # --------------------------------------------------------
-    # LIMITE DE PROFONDEUR
-    # --------------------------------------------------------
-
+    # on arrete la recherche si la profondeur maximale est atteinte
     if profondeur == MAX_DEPTH:
-
         return evaluer_grille(grille), None
 
-    # ========================================================
-    # CAS MAX
-    # ========================================================
-
+    # cas MAX
     if maximisant:
+        meilleure_valeur = float("-inf")  # valeur initiale tres petite
+        meilleur_coup = coups[0]  # premier coup par defaut
 
-        # Au debut, aucune valeur n'est encore connue
-        meilleure_valeur = float("-inf")
-
-        # On prend le premier coup comme coup par defaut
-        meilleur_coup = coups[0]
-
-        # Tester tous les coups possibles
+        # on teste tous les coups possibles
         for colonne in coups:
 
-            # Simuler le coup de JAUNE
-            nouvelle_grille = simuler_coup(
-                grille,
-                colonne,
-                JAUNE
-            )
+            # on simule le coup de JAUNE
+            nouvelle_grille = simuler_coup(grille, colonne, JAUNE)
 
-            # Appeler Minimax pour le niveau suivant
-            valeur, _ = minimax(
-                nouvelle_grille,
-                profondeur + 1,
-                False
-            )
+            # on passe au niveau suivant avec ROUGE
+            valeur, _ = minimax(nouvelle_grille, profondeur + 1, False)
 
-            # Garder la meilleure valeur
+            # on garde la plus grande valeur
             if valeur > meilleure_valeur:
-
                 meilleure_valeur = valeur
                 meilleur_coup = colonne
 
         return meilleure_valeur, meilleur_coup
 
-    # ========================================================
-    # CAS MIN
-    # ========================================================
-
+    # cas MIN
     else:
+        meilleure_valeur = float("inf")  # valeur initiale tres grande
+        meilleur_coup = coups[0]  # premier coup par defaut
 
-        # Au debut, aucune valeur n'est encore connue
-        meilleure_valeur = float("inf")
-
-        # Coup par defaut
-        meilleur_coup = coups[0]
-
-        # Tester tous les coups possibles
+        # on teste tous les coups possibles
         for colonne in coups:
 
-            # Simuler le coup de ROUGE
-            nouvelle_grille = simuler_coup(
-                grille,
-                colonne,
-                ROUGE
-            )
+            # on simule le coup de ROUGE
+            nouvelle_grille = simuler_coup(grille, colonne, ROUGE)
 
-            # Appeler Minimax pour le niveau suivant
-            valeur, _ = minimax(
-                nouvelle_grille,
-                profondeur + 1,
-                True
-            )
+            # on passe au niveau suivant avec JAUNE
+            valeur, _ = minimax(nouvelle_grille, profondeur + 1, True)
 
-            # Garder la plus petite valeur
+            # on garde la plus petite valeur
             if valeur < meilleure_valeur:
-
                 meilleure_valeur = valeur
                 meilleur_coup = colonne
 
         return meilleure_valeur, meilleur_coup
 
-
-# ============================================================
-# RECHERCHE DU MEILLEUR COUP
-# ============================================================
 
 def meilleur_coup(grille):
-    """
-    Determine le meilleur coup pour JAUNE.
-
-    JAUNE est le joueur controle par l'ordinateur.
-    """
-
-    valeur, colonne = minimax(
-        grille,
-        0,
-        True
-    )
+    # on lance Minimax avec JAUNE depuis la profondeur 0
+    valeur, colonne = minimax(grille, 0, True)
 
     return colonne
