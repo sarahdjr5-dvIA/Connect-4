@@ -1,7 +1,5 @@
-# ============================================================
-# DEFINITION DE LA GRILLE
-# ============================================================
 
+# DEFINITION DE LA GRILLE
 NB_LIGNES = 6
 NB_COLONNES = 7
 
@@ -10,12 +8,7 @@ JAUNE = 1
 ROUGE = 2
 
 NB_PIONS_GAGNANTS = 4
-
-
-# ============================================================
 # CREATION DE LA GRILLE
-# ============================================================
-
 def creer_grille():
     # Creer une matrice de 6 lignes et 7 colonnes remplie de 0
     grille = []
